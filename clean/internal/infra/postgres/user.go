@@ -39,7 +39,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (domain.User
 	if err != nil {
 		return domain.User{}, fmt.Errorf("get user %s: %w", id, mapError(err, "user"))
 	}
-	return userFromRow(row), nil
+	return hydrateUser(row), nil
 }
 
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]domain.User, error) {
@@ -52,7 +52,7 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]domain.
 	}
 	users := make([]domain.User, len(rows))
 	for i, row := range rows {
-		users[i] = userFromRow(row)
+		users[i] = hydrateUser(row)
 	}
 	return users, nil
 }
@@ -78,9 +78,10 @@ func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// userFromRow hydrates a domain.User from a DB row.
-// Validation is not called — data in the database is considered valid.
-func userFromRow(row sqlc.User) domain.User {
+// hydrateUser creates a domain.User from a DB row.
+// Validation is skipped — data in the database is considered valid
+// because it passed through the domain constructor on write.
+func hydrateUser(row sqlc.User) domain.User {
 	u := domain.User{
 		BaseEntity: domain.BaseEntity{
 			ID:        pgToUUID(row.ID),

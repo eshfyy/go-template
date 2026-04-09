@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	retryfailed "go-template/internal/api/worker/retry_failed"
 	"go-template/internal/app"
@@ -47,9 +48,9 @@ func startWorker(
 	scheduler *asynq.Scheduler,
 	retryUC uc.RetryFailed,
 	log *zap.Logger,
-) {
+) error {
 	if _, err := scheduler.Register("@every 1m", retryfailed.NewTask()); err != nil {
-		log.Fatal("register scheduler task failed", zap.Error(err))
+		return fmt.Errorf("register scheduler task: %w", err)
 	}
 
 	lc.Append(fx.Hook{
@@ -80,4 +81,6 @@ func startWorker(
 			return nil
 		},
 	})
+
+	return nil
 }

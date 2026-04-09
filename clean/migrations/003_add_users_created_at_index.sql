@@ -1,4 +1,5 @@
 -- +goose Up
+-- +goose NO TRANSACTION
 CREATE INDEX CONCURRENTLY idx_users_created_at ON users (created_at DESC);
 
 -- +goose Down

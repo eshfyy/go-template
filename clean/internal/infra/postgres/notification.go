@@ -41,7 +41,7 @@ func (r *NotificationRepository) GetByID(ctx context.Context, id uuid.UUID) (dom
 	if err != nil {
 		return domain.Notification{}, fmt.Errorf("get notification %s: %w", id, mapError(err, "notification"))
 	}
-	return notificationFromRow(row), nil
+	return hydrateNotification(row), nil
 }
 
 func (r *NotificationRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]domain.Notification, error) {
@@ -55,7 +55,7 @@ func (r *NotificationRepository) ListByUserID(ctx context.Context, userID uuid.U
 	}
 	notifications := make([]domain.Notification, len(rows))
 	for i, row := range rows {
-		notifications[i] = notificationFromRow(row)
+		notifications[i] = hydrateNotification(row)
 	}
 	return notifications, nil
 }
@@ -85,7 +85,7 @@ func (r *NotificationRepository) ListFailed(ctx context.Context, since time.Dura
 	}
 	notifications := make([]domain.Notification, len(rows))
 	for i, row := range rows {
-		notifications[i] = notificationFromRow(row)
+		notifications[i] = hydrateNotification(row)
 	}
 	return notifications, nil
 }
@@ -98,9 +98,10 @@ func (r *NotificationRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
-// notificationFromRow hydrates a domain.Notification from a DB row.
-// Validation is not called — data in the database is considered valid.
-func notificationFromRow(row sqlc.Notification) domain.Notification {
+// hydrateNotification creates a domain.Notification from a DB row.
+// Validation is skipped — data in the database is considered valid
+// because it passed through the domain constructor on write.
+func hydrateNotification(row sqlc.Notification) domain.Notification {
 	n := domain.Notification{
 		BaseEntity: domain.BaseEntity{
 			ID:        pgToUUID(row.ID),
