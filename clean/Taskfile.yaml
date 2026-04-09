@@ -1,0 +1,84 @@
+version: "3"
+
+vars:
+  PG_DSN: "postgres://postgres:postgres@localhost:5432/notifications?sslmode=disable"
+
+tasks:
+  # Infrastructure
+  infra:up:
+    desc: Start infrastructure (postgres, kafka, redis, jaeger)
+    cmd: docker compose up -d
+
+  infra:down:
+    desc: Stop infrastructure
+    cmd: docker compose down
+
+  infra:destroy:
+    desc: Stop infrastructure and remove volumes
+    cmd: docker compose down -v
+
+  # Run
+  run:api:
+    desc: Run API server locally
+    cmd: go run ./cmd/api
+
+  run:consumer:
+    desc: Run Kafka consumer locally
+    cmd: go run ./cmd/consumer
+
+  run:worker:
+    desc: Run worker locally
+    cmd: go run ./cmd/worker
+
+  # Migrations
+  migrate:up:
+    desc: Apply all pending migrations
+    cmd: goose -dir migrations postgres "{{.PG_DSN}}" up
+
+  migrate:down:
+    desc: Rollback last migration
+    cmd: goose -dir migrations postgres "{{.PG_DSN}}" down
+
+  migrate:create:
+    desc: Create a new migration (usage: task migrate:create -- <name>)
+    cmd: goose -dir migrations create {{.CLI_ARGS}} sql
+
+  # Code generation
+  generate:
+    desc: Run all code generators
+    deps: [generate:sqlc, generate:proto]
+
+  generate:sqlc:
+    desc: Generate sqlc code from SQL queries
+    cmd: sqlc generate
+    sources:
+      - internal/infra/postgres/query/*.sql
+      - migrations/*.sql
+      - sqlc.yaml
+    generates:
+      - internal/infra/postgres/sqlc/*.go
+
+  generate:proto:
+    desc: Generate Go code from proto files using buf
+    cmds:
+      - rm -rf gen/go
+      - buf generate
+    sources:
+      - proto/*.proto
+      - buf.yaml
+      - buf.gen.yaml
+    generates:
+      - gen/go/**/*.go
+
+  # Lint
+  lint:
+    desc: Run all linters
+    deps: [lint:go, lint:proto]
+
+  lint:go:
+    desc: Lint Go code with golangci-lint
+    cmd: golangci-lint run ./...
+
+  lint:proto:
+    desc: Lint proto files with buf
+    cmd: buf lint

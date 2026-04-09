@@ -1,0 +1,38 @@
+run:
+  timeout: 3m
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - gofmt
+    - goimports
+    - misspell
+    - unconvert
+    - unparam
+    - gocritic
+    - revive
+    - nilerr
+    - errorlint
+    - bodyclose
+    - exhaustive
+
+linters-settings:
+  goimports:
+    local-prefixes: go-template
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+  exhaustive:
+    default-signifies-exhaustive: true
+
+issues:
+  exclude-dirs:
+    - gen
+    - internal/infra/postgres/sqlc

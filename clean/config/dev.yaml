@@ -1,0 +1,10 @@
+app:
+  env: dev
+  log_level: info
+
+http:
+  port: 8080
+
+postgres:
+  host: postgres
+  ssl_mode: require

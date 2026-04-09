@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.vscode
+*.md
+!README.md
+config/local.yaml
+config/sensitive.yaml
+docker-compose.yaml
+Taskfile.yaml
+tmp/
+*.test
+*.out

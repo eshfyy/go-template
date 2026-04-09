@@ -1,0 +1,10 @@
+app:
+  env: local
+  log_level: debug
+
+http:
+  port: 8080
+
+postgres:
+  user: postgres
+  password: postgres
